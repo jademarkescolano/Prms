@@ -1,0 +1,134 @@
+﻿@page "/clients"
+@using StarbeeRealty.Shared
+@using System.Net.Http.Headers
+@inject ILocalStorageService localStorage
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject HttpClient Http
+@inject IDialogService Dialog
+<h1 style="font-family:'Segoe Script'">Clients</h1>
+<br />
+<MudToolBar>
+    <MudButton Variant="Variant.Outlined" Size="Size.Large" Style="background-color:#DAC301" @onclick="(e => Add())">ADD NEW</MudButton>
+    <MudSpacer />  <MudSpacer />  <MudSpacer />
+    <MudTextField @bind-Value="txtsearch"
+                   Clearable
+                  TextChanged="@Search"
+                  Adornment="Adornment.End"
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  Label="Search"
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense"
+                  Class="xsearch">
+    </MudTextField> &nbsp;&nbsp;&nbsp;
+    <MudButton Variant="Variant.Outlined" Size="Size.Large" Style="background-color:#DAC301" @onclick="(e => Refresh())">REFRESH</MudButton>
+</MudToolBar>
+
+<MudTable Breakpoint="Breakpoint.Sm" Class="ma-5" Dense="true" Hover="true" Items="@clientlist" FixedHeader="@fixed_header"
+          FixedFooter="@fixed_footer" Height="@(fixed_header || fixed_footer ?"500px": "")">
+    <HeaderContent>
+        <MudTh>Reservation Date</MudTh>
+        <MudTh>Name</MudTh>
+      
+        <MudTh>Address</MudTh>
+        <MudTh>Contact</MudTh>
+        <MudTh>Email</MudTh>
+        <MudTh>Project Name</MudTh>
+        <MudTh>Term</MudTh>
+        <MudTh></MudTh>
+
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd DataLabel="Reservation Date">@context.reservedate</MudTd>
+        <MudTd DataLabel="Name">@context.fullname</MudTd>
+     
+        <MudTd DataLabel="Address">@context.address</MudTd>
+        <MudTd DataLabel="Contact">@context.contact</MudTd>
+        <MudTd DataLabel="Email">@context.email</MudTd>
+        <MudTd DataLabel="Project Name">@context.projectname</MudTd>
+        <MudTd DataLabel="Term">@context.term</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" aria-label="edit" Class="btn2" Size="Size.Small"
+                           Variant="Variant.Outlined" Style="background-color:gray" @onclick="(e => Edit(context.clientID))"></MudIconButton>
+        </MudTd>
+
+    </RowTemplate>
+
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[]{50,200,500,1000,2000}" />
+    </PagerContent>
+</MudTable>
+
+    @code{
+    string txtsearch;
+    clients[]? clientlist;
+    bool fixed_header = true;
+    bool fixed_footer = false;
+    [Parameter]
+    public clients _clients { get; set; } = new clients();
+
+
+    async Task Search()
+    {
+        if (string.IsNullOrWhiteSpace(txtsearch))
+        {
+            StateHasChanged();
+            return;
+        }
+        using (HttpClient client = new HttpClient())
+        {
+            client.BaseAddress = new Uri($"{NavigationManager.BaseUri}");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await localStorage.GetItemAsStringAsync("token"));
+            HttpResponseMessage response = await client.GetAsync($"api/Client/SearchClient?search={txtsearch}");
+            if (response.IsSuccessStatusCode)
+            {
+                string contentrespose = await response.Content.ReadAsStringAsync();
+                clientlist = JsonConvert.DeserializeObject<clients[]>(contentrespose);
+                StateHasChanged();
+            }
+            else
+            {
+                Snackbar.Add($"Warning: {response.StatusCode}", Severity.Warning);
+                StateHasChanged();
+            }
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await GetClients();
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+
+    async Task Refresh()
+    {
+        await GetClients();
+    }
+    public async Task GetClients()
+    {
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await localStorage.GetItemAsStringAsync("token"));
+        clientlist = await Http.GetFromJsonAsync<clients[]>($"api/Client/Clients");
+
+    }
+
+
+    private async Task Add()
+        {
+            var parameters = new DialogParameters();
+            parameters.Add("_clients", new clients());
+            var dialog = await Dialog.Show<AddClient>("Add New Client", parameters).Result;
+        }
+
+    public async Task Edit(int id)
+    {
+        var parameters = new DialogParameters();
+        var more = clientlist.FirstOrDefault(_ => _.clientID == id);
+        parameters.Add("_clients", more);
+        var dialog = await Dialog.Show<UpdateClient>("Client's Info", parameters).Result;
+    }
+
+  
+}

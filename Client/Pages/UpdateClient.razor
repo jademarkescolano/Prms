@@ -1,0 +1,196 @@
+﻿@using StarbeeRealty.Shared;
+@inject ILocalStorageService localStorage
+@inject NavigationManager Nav
+@using System.Net.Http.Headers
+@inject ISnackbar SnackBar
+
+
+<MudDialog>
+    <DialogContent>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-4">
+
+                    <MudButton Class="mr-1 pa-2" @onclick="clearImg" Style="border-block-end-color" StartIcon="@Icons.Material.Filled.Clear" Color="Color.Primary" Size="Size.Small">
+                    </MudButton>
+                    <img src="@imgsrc" width="250" height="250" style="border:1px solid gray; margin-top:10px; border-radius:5px;" />
+                    <MudFileUpload Class="pa-2" T="IBrowserFile" FilesChanged="UploadFiles" Required>
+                        <ButtonTemplate>
+                            <MudButton HtmlTag="label"
+                                       Variant="Variant.Outlined"
+                                       Style="width:250px; border-radius: 20px;"
+                                       Color="Color.Tertiary"
+                                       StartIcon="@Icons.Filled.UploadFile"
+                                       for="@context">
+                                Upload VAlID ID
+                            </MudButton>
+                        </ButtonTemplate>
+                    </MudFileUpload>
+
+                </div>
+                <div class="col-sm-4">
+                    <MudTextField @bind-Value="@_clients.fname" Label="First Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.mname" Label="Middle Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.lname" Label="Last Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.address" Label="Address" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.occupation" Label="Occupation" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.contact" Label="Contact" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.email" Label="Email" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.income" Label="Income" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+
+                    <MudSelect @bind-Value="@_clients.civil" Margin="Margin.Dense" T="string" Label="Civil Status" Variant="Variant.Text">
+                        <MudSelectItem Value="@("Single")" />
+                        <MudSelectItem Value="@("Married")" />
+                        <MudSelectItem Value="@("Widow")" />
+                        <MudSelectItem Value="@("Seperated")" />
+                    </MudSelect>
+                    <MudTextField @bind-Value="@_clients.birthdate" Label="Birthdate" Variant="Variant.Text"
+                                  Margin="Margin.Dense" InputType="InputType.Date" Format="yyyy-MM-dd"></MudTextField>
+                </div>
+                <div class="col-sm-4">
+
+                    <MudTextField @bind-Value="@_clients.workadd" Label="Work Address" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.agentname" Label="Agent Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.projectname" Label="Project Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.spousename" Label="Spouse Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.spousecontact" Label="Spouse Contact" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudSelect @bind-Value="@_clients.term" Margin="Margin.Dense" T="string" Label="Term" Variant="Variant.Text">
+                        <MudSelectItem Value="@("5 Years")" />
+                        <MudSelectItem Value="@("6 Years")" />
+                        <MudSelectItem Value="@("7 Years")" />
+                    </MudSelect>
+                    <MudTextField @bind-Value="@_clients.block" Label="Block #" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.lot" Label="Lot #" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.tcp" Label="Total Cost Price" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <br />
+                    <MudToolBar>
+                        <MudSpacer />
+                        <MudSpacer />   <MudButton Variant="Variant.Filled" Color="Color.Secondary" @onclick="Cancel">Cancel</MudButton>&nbsp;&nbsp;
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="Save">Update</MudButton>
+                    </MudToolBar>
+
+                </div>
+            </div>
+        </div>
+        <br />
+        <br />
+    </DialogContent>
+</MudDialog>
+
+@code {
+
+    [Parameter]
+    public clients _clients { get; set; } = new clients();
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public string img64 { get; set; } = "/ 9j/4AAQSkZJRgABAQEBLAEsAAD/4QEBRXhpZgAASUkqAAgAAAACAA4BAgDFAAAAJgAAAJiCAgAOAAAA6wAAAAAAAABCbGFuayBiYWdkZSBtb2NrdXAgaXNvbGF0ZWQgb24gd2hpdGUuIFBsYWluIGVtcHR5IG5hbWUgdGFnIG1vY2sgdXAgaGFuZ2luZyBvbiBuZWNrIHdpdGggc3RyaW5nLiBOYW1ldGFnIHdpdGggYmx1ZSByaWJib24gYW5kIHRyYW5zcGFyZW50IHBsYXN0aWMgcGFwZXIgaG9sZGVyLiBCYWRnZSBjbGlwcGluZyBwYXRoLiBDb3Jwb3JhdGUgZGVzaWduLkFsZXhhbmRyQm9nbmF0/+EGBGh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8APD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyI+Cgk8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgoJCTxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnBob3Rvc2hvcD0iaHR0cDovL25zLmFkb2JlLmNvbS9waG90b3Nob3AvMS4wLyIgeG1sbnM6SXB0YzR4bXBDb3JlPSJodHRwOi8vaXB0Yy5vcmcvc3RkL0lwdGM0eG1wQ29yZS8xLjAveG1sbnMvIiAgIHhtbG5zOkdldHR5SW1hZ2VzR0lGVD0iaHR0cDovL3htcC5nZXR0eWltYWdlcy5jb20vZ2lmdC8xLjAvIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtbG5zOnBsdXM9Imh0dHA6Ly9ucy51c2VwbHVzLm9yZy9sZGYveG1wLzEuMC8iICB4bWxuczppcHRjRXh0PSJodHRwOi8vaXB0Yy5vcmcvc3RkL0lwdGM0eG1wRXh0LzIwMDgtMDItMjkvIiB4bWxuczp4bXBSaWdodHM9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9yaWdodHMvIiBkYzpSaWdodHM9IkFsZXhhbmRyQm9nbmF0IiBwaG90b3Nob3A6Q3JlZGl0PSJHZXR0eSBJbWFnZXMvaVN0b2NrcGhvdG8iIEdldHR5SW1hZ2VzR0lGVDpBc3NldElEPSI1MjIzMTU0NTgiIHhtcFJpZ2h0czpXZWJTdGF0ZW1lbnQ9Imh0dHBzOi8vd3d3LmlzdG9ja3Bob3RvLmNvbS9sZWdhbC9saWNlbnNlLWFncmVlbWVudD91dG1fbWVkaXVtPW9yZ2FuaWMmYW1wO3V0bV9zb3VyY2U9Z29vZ2xlJmFtcDt1dG1fY2FtcGFpZ249aXB0Y3VybCIgPgo8ZGM6Y3JlYXRvcj48cmRmOlNlcT48cmRmOmxpPkFsZXhhbmRyQm9nbmF0PC9yZGY6bGk+PC9yZGY6U2VxPjwvZGM6Y3JlYXRvcj48ZGM6ZGVzY3JpcHRpb24+PHJkZjpBbHQ+PHJkZjpsaSB4bWw6bGFuZz0ieC1kZWZhdWx0Ij5CbGFuayBiYWdkZSBtb2NrdXAgaXNvbGF0ZWQgb24gd2hpdGUuIFBsYWluIGVtcHR5IG5hbWUgdGFnIG1vY2sgdXAgaGFuZ2luZyBvbiBuZWNrIHdpdGggc3RyaW5nLiBOYW1ldGFnIHdpdGggYmx1ZSByaWJib24gYW5kIHRyYW5zcGFyZW50IHBsYXN0aWMgcGFwZXIgaG9sZGVyLiBCYWRnZSBjbGlwcGluZyBwYXRoLiBDb3Jwb3JhdGUgZGVzaWduLjwvcmRmOmxpPjwvcmRmOkFsdD48L2RjOmRlc2NyaXB0aW9uPgo8cGx1czpMaWNlbnNvcj48cmRmOlNlcT48cmRmOmxpIHJkZjpwYXJzZVR5cGU9J1Jlc291cmNlJz48cGx1czpMaWNlbnNvclVSTD5odHRwczovL3d3dy5pc3RvY2twaG90by5jb20vcGhvdG8vbGljZW5zZS1nbTUyMjMxNTQ1OC0/dXRtX21lZGl1bT1vcmdhbmljJmFtcDt1dG1fc291cmNlPWdvb2dsZSZhbXA7dXRtX2NhbXBhaWduPWlwdGN1cmw8L3BsdXM6TGljZW5zb3JVUkw+PC9yZGY6bGk+PC9yZGY6U2VxPjwvcGx1czpMaWNlbnNvcj4KCQk8L3JkZjpEZXNjcmlwdGlvbj4KCTwvcmRmOlJERj4KPC94OnhtcG1ldGE+C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AAAAAAAAAACTgAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAScAAAAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAACTgAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAScAAAAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAACTgAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAScAAAAAAABwAAAAAAAAAAAAAAAAAAAAAAAAAAACTgAAAAAAAOAAAAAAAAAAAAAAAAAAAAAAAAAAAAScAAAAAAABwAAAAAAAAAAAAAAAAAAAAAAAAAAACTgAAAAAAAOAAAAAAAAAAAAAAAAAAAAAAAAAAAAScAAAAAAABwAAAAAAAAAAAAAAAAAAAAAAAAAAACTgAAAAAAAOAAAAAAAAAAAAAAAAAAAAAAAAAAAAScAAAAAAABwAAAAAAAAAAAAAAAAAAAAAAAAAAACTgAAAAAAAOAAAAAAAAAAAAAAAAAAAAAAAAAAAAScAAAAAAABwAAAAAAAAAAAAAAAAAAAAAAAAAAACTgAAAAAAAOAAAAAAAAAAAAAAAAAAAAAAAAAAAAScAAAAAAABwAAAAAAAAAAAAAAAAAAAAAAAAAAACTgAAAAAAAOAAAAAAAAAAAAAAAAAAAAAAAAAAAASGSSSASSSRwAAAAAAAAAAAAAAAAAAAAAAAAAAAARLJJLZJJZYAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAASSSSSSSSSQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAf/EAC0RAAEDAwEHAwUAAwAAAAAAAAEAESExQfBRYGGBkaGxw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";
+    [Parameter] public string imgsrc { get; set; } = "";
+    [Parameter] public byte[] _filebytes { get; set; } = null;
+    [Parameter] public byte[] photo { get; set; } = null;
+
+    protected override void OnInitialized()
+    {
+        if (_clients.validID != null && _clients.validID.Length > 0)
+        {
+            imgsrc = $"data:image/png;base64,{Convert.ToBase64String(_clients.validID)}";
+        }
+    }
+
+    IList<IBrowserFile> files = new List<IBrowserFile>();
+    public bool def { get; set; }
+    private async void UploadFiles(IBrowserFile file)
+    {
+        def = true;
+        files.Add(file);
+        var memoryStream = new MemoryStream();
+        await file.OpenReadStream(file.Size).CopyToAsync(memoryStream);
+        _filebytes = memoryStream.ToArray();
+        photo = GetImage(Convert.ToBase64String(_filebytes));
+        imgsrc = string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(photo));
+        StateHasChanged();
+    }
+
+    async Task clearImg()
+    {
+        var photos = GetImage(img64);
+
+        imgsrc = string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(photos));
+        StateHasChanged();
+    }
+
+    public byte[] GetImage(string sBase64String)
+    {
+        byte[] bytes = null;
+        if (!string.IsNullOrEmpty(sBase64String))
+        {
+            bytes = Convert.FromBase64String(sBase64String);
+        }
+        return bytes;
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    public async Task Save()
+    {
+        int i = 0;
+        var _xclient = new clients
+            {
+                clientID = _clients.clientID,
+                fname = _clients.fname,
+                mname = _clients.mname,
+                lname = _clients.lname,
+                address = _clients.address,
+                occupation = _clients.occupation,
+                validID = _clients.validID,
+                contact = _clients.contact,
+                email = _clients.email,
+                income = _clients.income,
+                civil = _clients.civil,
+                birthdate = _clients.birthdate,
+                workadd = _clients.workadd,
+                agentname = _clients.agentname,
+                projectname = _clients.projectname,
+                spousename = _clients.spousename,
+                spousecontact = _clients.spousecontact,
+                term = _clients.term,
+                block = _clients.block,
+                lot = _clients.lot,
+                tcp = _clients.tcp
+            };
+
+        using (HttpClient client = new HttpClient())
+        {
+            client.BaseAddress = new Uri($"{Nav.BaseUri}");
+            var json = JsonConvert.SerializeObject(_xclient);
+            HttpContent content = new StringContent(json);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await localStorage.GetItemAsStringAsync("token"));
+            HttpResponseMessage response = await client.PostAsync($"api/Client/UpdateClient", content);
+            if (response.IsSuccessStatusCode)
+            {
+                string contentresponse = await response.Content.ReadAsStringAsync();
+                i = JsonConvert.DeserializeObject<int>(contentresponse);
+                if (i > 0)
+                {
+                    await InvokeAsync(async () =>
+                    {
+                        SnackBar.Add($"Done: Successfully Updated!", Severity.Success);
+                        MudDialog.Close();
+                        await InvokeAsync(StateHasChanged);
+                    });
+                }
+            }
+            else
+            {
+                await InvokeAsync(() =>
+                {
+                    SnackBar.Add($"Warning: {response.ReasonPhrase}", Severity.Warning);
+                    StateHasChanged();
+                });
+            }
+        }
+    }
+}

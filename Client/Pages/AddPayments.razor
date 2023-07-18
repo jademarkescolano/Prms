@@ -1,0 +1,159 @@
+﻿@using StarbeeRealty.Shared;
+@inject ILocalStorageService localStorage
+@inject NavigationManager Nav
+@using System.Net.Http.Headers
+@inject ISnackbar SnackBar
+
+
+<MudDialog>
+    <DialogContent>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6">
+
+                    <MudTextField @bind-Value="@_payments.ar" Label="AR #" Variant="Variant.Text"  Margin="Margin.Dense" ReadOnly></MudTextField>
+                   
+
+                    <MudAutocomplete Clearable T="clients" Label="Search Clients" @bind-Value="_clients" Variant="Variant.Text" Margin="Margin.Dense"
+                                     SearchFunc="@Search" ToStringFunc="@(e=> e==null?null : $"{e.fullname}")" Strict="false">
+                    </MudAutocomplete>
+
+                    @if (_hide)
+                    {
+                        <MudTextField @bind-Value="@_clients.clientID" Label="AR #" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                        <MudTextField @bind-Value="@_clients.fullname" Label="AR #" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    }
+
+                    <MudTextField @bind-Value="@_payments.date" Label="Date" Variant="Variant.Text"
+                                  Margin="Margin.Dense" InputType="InputType.Date" Format="yyyy-MM-dd"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.projectname" Label="Project Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudSelect @bind-Value="@_payments.paymentof" Margin="Margin.Dense" T="string" Label="Payment of" Variant="Variant.Text">
+                        <MudSelectItem Value="@("Reservation")" />
+                        <MudSelectItem Value="@("Amortization")" />
+                    </MudSelect>
+                    <MudSelect @bind-Value="@_clients.term" Margin="Margin.Dense" T="string" Label="Term" Variant="Variant.Text">
+                        <MudSelectItem Value="@("5 Years")" />
+                        <MudSelectItem Value="@("6 Years")" />
+                        <MudSelectItem Value="@("7 Years")" />
+                    </MudSelect>
+                </div>
+                <div class="col-sm-6">
+                   
+                    <MudTextField @bind-Value="@_clients.block" Label="Block #" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.lot" Label="Lot #" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.address" Label="Address" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_clients.tcp" Label="Total Cost Price" ReadOnly Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_payments.amount" Label="Amount" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="@_payments.nextpaymentdate" Label="Next Payment Date" Variant="Variant.Text"
+                                  Margin="Margin.Dense" InputType="InputType.Date" Format="yyyy-MM-dd"></MudTextField>
+                   
+                    <br />
+                    <MudToolBar>
+                        <MudSpacer />
+                        <MudSpacer />   <MudButton Variant="Variant.Filled" Color="Color.Secondary" @onclick="Cancel">Cancel</MudButton>&nbsp;&nbsp;
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="Save">Save</MudButton>
+                    </MudToolBar>
+                </div>
+            </div>
+        </div>
+        <br />
+        <br />
+    </DialogContent>
+</MudDialog>
+
+    @code {
+
+
+    private bool _hide = false;
+    public string ArNumber
+    {
+        get { return _payments.ar; }
+        set { _payments.ar = value; }
+    }
+
+    private async Task GenerateRandomNumber()
+    {
+        Random random = new Random();
+        int randomNumber = random.Next(1000, 9999);
+        _payments.ar = randomNumber.ToString();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GenerateRandomNumber();
+    }
+
+
+    private clients _clients { get; set; } = new clients();
+    [Parameter]
+    public payments _payments { get; set; } = new payments();
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    private async Task<IEnumerable<clients>> Search(string value)
+    {
+        HttpClient httpClient = new HttpClient();
+        httpClient.BaseAddress = new Uri($"{Nav.BaseUri}");
+        var clients = await httpClient.GetFromJsonAsync<List<clients>>($"api/Client/SearchClient?search={value}");
+        return clients;
+
+    }
+ 
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    public async Task Save()
+    {
+        int i = 0;
+        var _xpayment = new payments
+            {
+               ar = _payments.ar,
+               clientid = _clients.clientID,
+               clientname = _clients.fullname,
+               date = _payments.date,
+               projectname = _clients.projectname,
+               paymentof = _payments.paymentof,
+               term = _clients.term,
+               block = _clients.block,
+               lot  = _clients.lot,
+               address = _clients.address,
+               _tcp = _clients._tcp,
+               amount = _payments.amount,
+               nextpaymentdate = _payments.nextpaymentdate
+
+            };
+
+        using (HttpClient client = new HttpClient())
+        {
+            client.BaseAddress = new Uri($"{Nav.BaseUri}");
+            var json = JsonConvert.SerializeObject(_xpayment);
+            HttpContent content = new StringContent(json);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await localStorage.GetItemAsStringAsync("token"));
+            HttpResponseMessage response = await client.PostAsync($"api/Payment/AddPayment", content);
+            if (response.IsSuccessStatusCode)
+            {
+                string contentresponse = await response.Content.ReadAsStringAsync();
+                i = JsonConvert.DeserializeObject<int>(contentresponse);
+                if (i > 0)
+                {
+                    await InvokeAsync(async () =>
+                    {
+                        SnackBar.Add($"Done: Successfully Saved!", Severity.Success);
+                        MudDialog.Close();
+                        await InvokeAsync(StateHasChanged);
+                    });
+                }
+            }
+            else
+            {
+                await InvokeAsync(() =>
+                {
+                    SnackBar.Add($"Warning: {response.ReasonPhrase}", Severity.Warning);
+                    StateHasChanged();
+                });
+            }
+        }
+    }
+}

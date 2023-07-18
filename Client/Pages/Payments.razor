@@ -1,0 +1,165 @@
+﻿@page "/payments"
+@using StarbeeRealty.Shared
+@using System.Net.Http.Headers
+@inject ILocalStorageService localStorage
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject HttpClient Http
+@inject IDialogService Dialog
+
+<h1 style="font-family:'Segoe Script'">Payments</h1> <br />
+<MudToolBar>
+    <MudButton Variant="Variant.Outlined" Size="Size.Large" Style="background-color:#DAC301" @onclick="(e => Add())">ADD NEW</MudButton>
+    <MudSpacer />  <MudSpacer />  <MudSpacer />
+    <MudTextField @bind-Value="txtsearch"
+                    Clearable
+                  TextChanged="@Search"
+                  Adornment="Adornment.End"
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  Label="Search"
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense"
+                  Class="xsearch">
+    </MudTextField> &nbsp;&nbsp;&nbsp; 
+    <MudFab StartIcon="@Icons.Material.Filled.ImportExport" Label="Export" Size="Size.Small" Style="background-color:#DAC301" @onclick="Export" /> &nbsp;&nbsp;&nbsp;
+    <MudButton Variant="Variant.Outlined" Size="Size.Large" Style="background-color:#DAC301" @onclick="(e => Refresh())">REFRESH</MudButton>
+    </MudToolBar>
+
+    <MudTable Breakpoint="Breakpoint.Sm" Class="ma-5" Dense="true" Hover="true" Items="@paymentlist" FixedHeader="@fixed_header"
+          FixedFooter="@fixed_footer" Height="@(fixed_header || fixed_footer ?"500px": "")">
+    <HeaderContent>
+        <MudTd><MudTableSortLabel SortBy="new Func<payments, object>(c => c.date)" InitialDirection="MudBlazor.SortDirection.Descending">
+            Date & Time
+        </MudTableSortLabel>
+        </MudTd>
+        <MudTh>AR #</MudTh>
+        <MudTh>Name</MudTh>
+        <MudTh>Project Name</MudTh>
+        <MudTh>Payment</MudTh>
+        <MudTh>Block</MudTh>
+        <MudTh>Lot</MudTh>
+        <MudTh>Amount</MudTh>
+        <MudTh>Balance</MudTh>
+        <MudTh>Next Payment Date</MudTh>
+        <MudTh></MudTh>
+        <MudTh></MudTh>
+
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd DataLabel="Date">@context.date</MudTd>
+        <MudTd DataLabel="Ar #">@context.ar</MudTd>
+        <MudTd DataLabel="Name">@context.clientname</MudTd>
+        <MudTd DataLabel="Project Name">@context.projectname</MudTd>
+        <MudTd DataLabel="Payment of">@context.paymentof</MudTd>
+        <MudTd DataLabel="Block #">@context.block</MudTd>
+        <MudTd DataLabel="Lot #">@context.lot</MudTd>
+        <MudTd DataLabel="Amount">@context._amount.ToString("N2")</MudTd>
+        <MudTd DataLabel="Balance">@context._balance.ToString("N2")</MudTd>
+        <MudTd DataLabel="Next Payment Date">@context.nextpaymentdate.ToString("MMMM d, yyyy")</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" aria-label="edit" Class="btn2" Size="Size.Small"
+                           Variant="Variant.Outlined" Style="background-color:gray" @onclick="(e => Edit(context.paymentid))"></MudIconButton>
+        </MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Summarize" aria-label="edit" Class="btn2" Size="Size.Small"
+                           Variant="Variant.Outlined" Style="background-color:#DAC301" @onclick="(e => Receipt(context.paymentid))"></MudIconButton>
+        </MudTd>
+
+    </RowTemplate>
+
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[]{50,200,500,1000,2000}" />
+    </PagerContent>
+    </MudTable>
+
+@code {
+
+    string txtsearch;
+    payments[]? paymentlist;
+    bool fixed_header = true;
+    bool fixed_footer = false;
+    [Parameter]
+    public payments _payments { get; set; } = new payments();
+
+
+    async Task Export()
+    {
+        NavigationManager.NavigateTo($"{NavigationManager.BaseUri}api/Payment/Summary?search={txtsearch}", true);
+    }
+
+    async Task Search()
+    {
+        if (string.IsNullOrWhiteSpace(txtsearch))
+        {
+            StateHasChanged();
+            return;
+        }
+        using (HttpClient client = new HttpClient())
+        {
+            client.BaseAddress = new Uri($"{NavigationManager.BaseUri}");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await localStorage.GetItemAsStringAsync("token"));
+            HttpResponseMessage response = await client.GetAsync($"api/Payment/SearchPayment?search={txtsearch}");
+            if (response.IsSuccessStatusCode)
+            {
+                string contentrespose = await response.Content.ReadAsStringAsync();
+                paymentlist = JsonConvert.DeserializeObject<payments[]>(contentrespose);
+                StateHasChanged();
+            }
+            else
+            {
+                Snackbar.Add($"Warning: {response.StatusCode}", Severity.Warning);
+                StateHasChanged();
+            }
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await GetPayments();
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+
+    async Task Refresh()
+    {
+        await GetPayments();
+    }
+
+    [Inject]
+    protected IJSRuntime JSRuntime { get; set; }
+
+
+    async Task Receipt(int id)
+    {
+        string path = $"receipt/{id}";
+        await OpenInNewTab(path);
+    }
+
+    private async ValueTask OpenInNewTab(string url)
+    {
+        await JSRuntime.InvokeVoidAsync("open", url, "_blank");
+    }
+
+    public async Task GetPayments()
+    {
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await localStorage.GetItemAsStringAsync("token"));
+        paymentlist = await Http.GetFromJsonAsync<payments[]>($"api/Payment/Payments");
+    }
+
+    private async Task Add()
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("_payments", new payments());
+        var dialog = await Dialog.Show<AddPayments>("Add New Payment", parameters).Result;
+    }
+
+    public async Task Edit(int id)
+    {
+        var parameters = new DialogParameters();
+        var more = paymentlist.FirstOrDefault(_ => _.paymentid == id);
+        parameters.Add("_payments", more);
+        var dialog = await Dialog.Show<UpdatePayments>("Update Payment's Info", parameters).Result;
+    }
+}

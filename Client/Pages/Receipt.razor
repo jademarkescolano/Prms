@@ -1,0 +1,172 @@
+﻿@page "/receipt/{id:int}"
+@using StarbeeRealty.Shared
+@layout LoginLayout
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+
+<PageTitle>Receipt</PageTitle>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+</head>
+<body style="font-size: 15px; font-family:'Bookman Old Style'; font-size:13px;">
+    <center>@_payments.date.ToString("d")</center>
+
+
+    <div class="container">
+        <div class="column">
+            <img src="Starbee.png" style="width:100px; height:100px;" /> <br /><br />
+            <p1>Paid to: @_payments.projectname</p1> <br />
+            <p1>Pesos: @ConvertNumberToWords(_payments.amount2) Pesos </p1> <br />
+            <p1>For Payment of: <p1 style="text-transform:uppercase">@_payments.paymentof</p1> </p1>
+        </div> <MudSpacer />
+        <div class="column">
+            <br /><br /><br />
+            <p1>@_payments.ar</p1> <br /><br /><br /><br />
+            <p1>Amount: @_payments.amount</p1>
+        </div>
+    </div>
+
+
+
+    <hr />
+
+
+    <div class="container">
+        <div class="column">
+            Particulars: BLOCK @_payments.block
+            <div style="text-indent:80px;">LOT @_payments.lot</div>
+        </div> <MudSpacer />
+        <div class="column">
+            <fieldset>
+
+
+                <div>
+                    <p1>Paid by</p1> <input type="checkbox" id="scales" name="scales">
+                    <label for="scales">Cash</label>
+                </div>
+
+                <div>
+                    <p1 style="color: transparent;">Paid by</p1> <input type="checkbox" id="horns" name="horns">
+                    <label for="horns">Check</label>
+                </div>
+                <div>
+                    <p1 style="color: transparent;">Paid by</p1> <input type="checkbox" id="horns" name="horns">
+                    <label for="horns">Fund transfer</label>
+                </div>
+            </fieldset>
+
+        </div>
+    </div>
+
+
+    <hr />
+
+    <div class="container">
+        <div class="column">
+            Received from: @_payments.clientname
+            <br />
+            Address: @_payments.address
+        </div> <MudSpacer />
+        <div class="column">
+            Account amount: ₱ @_payments.amount
+            <br />
+            This Payment : ₱ @_payments.amount <br />
+            Balance: ₱ @_payments.balance
+        </div>
+    </div>
+    <br />
+    <br />
+    <div class="container">
+        <div class="column">
+            Note: NEXT PAYMENT WILL BE ON @(_payments.nextpaymentdate.ToString("MMMM d, yyyy"))
+        </div> <MudSpacer />
+        <div class="column">
+            Received by: MAY JANE PRENIO
+        </div>
+    </div>
+    <style>
+        .container {
+            display: flex;
+        }
+
+        .column {
+            flex: 1;
+        }
+    </style>
+
+</body>
+</html>
+
+@code
+{
+    [Parameter] public int id { get; set; }
+    [Parameter] public payments _payments { get; set; } = new payments();
+
+
+    public static string ConvertNumberToWords(int number)
+    {
+        if (number == 0)
+            return "zero";
+
+        if (number < 0)
+            return "minus " + ConvertNumberToWords(Math.Abs(number));
+
+        string words = "";
+
+        if ((number / 1000000) > 0)
+        {
+            words += ConvertNumberToWords(number / 1000000) + " Million ";
+            number %= 1000000;
+        }
+
+        if ((number / 1000) > 0)
+        {
+            words += ConvertNumberToWords(number / 1000) + " Thousand ";
+            number %= 1000;
+        }
+
+        if ((number / 100) > 0)
+        {
+            words += ConvertNumberToWords(number / 100) + " Hundred ";
+            number %= 100;
+        }
+
+        if (number > 0)
+        {
+            if (words != "")
+                words += "and ";
+
+            var unitsMap = new[] { "Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen" };
+            var tensMap = new[] { "Zero", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety" };
+
+            if (number < 20)
+                words += unitsMap[number];
+            else
+            {
+                words += tensMap[number / 10];
+                if ((number % 10) > 0)
+                    words += "-" + unitsMap[number % 10];
+            }
+        }
+
+        return words;
+    }
+
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        string apiUrl = $"{NavigationManager.BaseUri}api/Payment/Payments";
+        var response = await Http.GetAsync(apiUrl);
+        response.EnsureSuccessStatusCode();
+        string responseBodyJson = await response.Content.ReadAsStringAsync();
+        var clr = JsonConvert.DeserializeObject<List<payments>>(responseBodyJson);
+        _payments = clr.Where(x => x.paymentid == id).FirstOrDefault();
+    }
+}

@@ -1,0 +1,59 @@
+﻿@inherits LayoutComponentBase
+@inject ILocalStorageService localStorage
+@inject NavigationManager NavigationManager
+
+<MudThemeProvider />
+<MudDialogProvider FullWidth="true"
+                   MaxWidth="MaxWidth.Medium"
+                   Position="DialogPosition.TopCenter"
+                   CloseButton="true"/>
+<MudSnackbarProvider />
+
+<div class="page">
+
+   @* <div class="sidebar">
+        <NavMenu />
+    </div>*@
+
+    <main>
+      @*  <div class="top-row px-4">
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        </div>*@
+
+        <MudAppBar Style="background:#DAC301" Fixed="false" Elevation="0">
+         
+          <img src="Starbee.png"  style="height:50px; width:50px;"/>
+            <MudSpacer />
+
+            <NavLink class="nav-link" href="clients" style="color: black">
+                &nbsp;
+                <span class="oi oi-person" aria-hidden="true"></span>  <p1 style="color: black;">Registration</p1>
+                </NavLink>
+            &nbsp;                &nbsp;
+            <NavLink class="nav-link" href="payments" style="color: black"> 
+                &nbsp;
+                <span class="oi oi-dollar" aria-hidden="true"></span> <p1 style="color: black;">Payment</p1>
+            </NavLink>
+                <MudSpacer/>
+            <MudMenu Label="Menu" Dense="true" Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Dark">
+                <MudMenuItem Icon="@Icons.Material.Filled.Logout" @onclick="logout">Logout</MudMenuItem>
+            </MudMenu>
+        </MudAppBar>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+                @code{
+    public async Task logout()
+    {
+        await localStorage.RemoveItemAsync("token");
+
+        if (await localStorage.GetItemAsStringAsync("token") == null)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+    }
+                }

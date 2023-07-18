@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="SummaryDataSet" targetNamespace="http://tempuri.org/SummaryDataSet.xsd" xmlns:mstns="http://tempuri.org/SummaryDataSet.xsd" xmlns="http://tempuri.org/SummaryDataSet.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="SummaryDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_UserDSName="SummaryDataSet" msprop:Generator_DataSetName="SummaryDataSet">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="payments" msprop:Generator_RowEvHandlerName="paymentsRowChangeEventHandler" msprop:Generator_RowDeletedName="paymentsRowDeleted" msprop:Generator_RowDeletingName="paymentsRowDeleting" msprop:Generator_RowEvArgName="paymentsRowChangeEvent" msprop:Generator_TablePropName="payments" msprop:Generator_RowChangedName="paymentsRowChanged" msprop:Generator_RowChangingName="paymentsRowChanging" msprop:Generator_TableClassName="paymentsDataTable" msprop:Generator_RowClassName="paymentsRow" msprop:Generator_TableVarName="tablepayments" msprop:Generator_UserTableName="payments">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="paymentid" msprop:Generator_ColumnPropNameInRow="paymentid" msprop:Generator_ColumnPropNameInTable="paymentidColumn" msprop:Generator_ColumnVarNameInTable="columnpaymentid" msprop:Generator_UserColumnName="paymentid" type="xs:string" minOccurs="0" />
+              <xs:element name="clientid" msprop:Generator_ColumnPropNameInRow="clientid" msprop:Generator_ColumnPropNameInTable="clientidColumn" msprop:Generator_ColumnVarNameInTable="columnclientid" msprop:Generator_UserColumnName="clientid" type="xs:string" minOccurs="0" />
+              <xs:element name="ar" msprop:Generator_ColumnPropNameInRow="ar" msprop:Generator_ColumnPropNameInTable="arColumn" msprop:Generator_ColumnVarNameInTable="columnar" msprop:Generator_UserColumnName="ar" type="xs:string" minOccurs="0" />
+              <xs:element name="clientname" msprop:Generator_ColumnPropNameInRow="clientname" msprop:Generator_ColumnPropNameInTable="clientnameColumn" msprop:Generator_ColumnVarNameInTable="columnclientname" msprop:Generator_UserColumnName="clientname" type="xs:string" minOccurs="0" />
+              <xs:element name="date" msprop:Generator_ColumnPropNameInRow="date" msprop:Generator_ColumnPropNameInTable="dateColumn" msprop:Generator_ColumnVarNameInTable="columndate" msprop:Generator_UserColumnName="date" type="xs:string" minOccurs="0" />
+              <xs:element name="projectname" msprop:Generator_ColumnPropNameInRow="projectname" msprop:Generator_ColumnPropNameInTable="projectnameColumn" msprop:Generator_ColumnVarNameInTable="columnprojectname" msprop:Generator_UserColumnName="projectname" type="xs:string" minOccurs="0" />
+              <xs:element name="paymentof" msprop:Generator_ColumnPropNameInRow="paymentof" msprop:Generator_ColumnPropNameInTable="paymentofColumn" msprop:Generator_ColumnVarNameInTable="columnpaymentof" msprop:Generator_UserColumnName="paymentof" type="xs:string" minOccurs="0" />
+              <xs:element name="block" msprop:Generator_ColumnPropNameInRow="block" msprop:Generator_ColumnPropNameInTable="blockColumn" msprop:Generator_ColumnVarNameInTable="columnblock" msprop:Generator_UserColumnName="block" type="xs:string" minOccurs="0" />
+              <xs:element name="lot" msprop:Generator_ColumnPropNameInRow="lot" msprop:Generator_ColumnPropNameInTable="lotColumn" msprop:Generator_ColumnVarNameInTable="columnlot" msprop:Generator_UserColumnName="lot" type="xs:string" minOccurs="0" />
+              <xs:element name="address" msprop:Generator_ColumnPropNameInRow="address" msprop:Generator_ColumnPropNameInTable="addressColumn" msprop:Generator_ColumnVarNameInTable="columnaddress" msprop:Generator_UserColumnName="address" type="xs:string" minOccurs="0" />
+              <xs:element name="tcp" msprop:Generator_ColumnPropNameInRow="tcp" msprop:Generator_ColumnPropNameInTable="tcpColumn" msprop:Generator_ColumnVarNameInTable="columntcp" msprop:Generator_UserColumnName="tcp" type="xs:string" minOccurs="0" />
+              <xs:element name="amount" msprop:Generator_ColumnPropNameInRow="amount" msprop:Generator_ColumnPropNameInTable="amountColumn" msprop:Generator_ColumnVarNameInTable="columnamount" msprop:Generator_UserColumnName="amount" type="xs:string" minOccurs="0" />
+              <xs:element name="balance" msprop:Generator_ColumnPropNameInRow="balance" msprop:Generator_ColumnPropNameInTable="balanceColumn" msprop:Generator_ColumnVarNameInTable="columnbalance" msprop:Generator_UserColumnName="balance" type="xs:string" minOccurs="0" />
+              <xs:element name="term" msprop:Generator_ColumnPropNameInRow="term" msprop:Generator_ColumnPropNameInTable="termColumn" msprop:Generator_ColumnVarNameInTable="columnterm" msprop:Generator_UserColumnName="term" type="xs:string" minOccurs="0" />
+              <xs:element name="nextpaymentdare" msprop:Generator_ColumnPropNameInRow="nextpaymentdare" msprop:Generator_ColumnPropNameInTable="nextpaymentdareColumn" msprop:Generator_ColumnVarNameInTable="columnnextpaymentdare" msprop:Generator_UserColumnName="nextpaymentdare" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
